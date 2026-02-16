@@ -1,0 +1,4 @@
+server.log
+server.log.*
+nohup.out
+*.log

@@ -1,0 +1,24 @@
+import logging
+import time
+import random
+import os
+
+# Setup logging to write to a file
+logging.basicConfig(
+    filename='/home/ec2-user/cloud_project/server.log',
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
+
+pid = os.getpid()
+print(f"Server Started! Running with PID: {pid}")
+
+while True:
+    # Simulate traffic
+    if random.randint(1, 10) <= 8:
+        logging.info(f"Health Check OK. Process {pid} running.")
+    else:
+        logging.error("DB Connection Failed! Timeout.")
+
+    # Sleep for 3 seconds so we don't fill the disk too fast
+    time.sleep(3)
