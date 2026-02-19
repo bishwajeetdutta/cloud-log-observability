@@ -5,7 +5,7 @@ import os
 
 # Setup logging to write to a file
 logging.basicConfig(
-    filename='/home/ec2-user/cloud_project/server.log',
+    #filename='server.log',
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s'
 )

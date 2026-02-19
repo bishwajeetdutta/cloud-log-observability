@@ -1,0 +1,16 @@
+# runtime logs and backups
+server.log
+server.log.*
+nohup.out
+*.log
+*.pyc
+__pycache__/
+
+# local editor files
+*.swp
+*.swo
+.idea/
+.vscode/
+
+# OS files
+.DS_Store
