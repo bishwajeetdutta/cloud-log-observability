@@ -1,7 +1,7 @@
 import time
 
 # UPDATE THIS LINE TO THE ABSOLUTE PATH
-LOG_FILE = "/home/ec2-user/cloud_project/server.log"
+LOG_FILE = "server.log"
 
 def follow(file):
     file.seek(0, 2)  # Move to the end of the file

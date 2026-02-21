@@ -5,3 +5,11 @@ services:
     restart: always
     volumes:
       - /home/ec2-user/cloud_project:/app
+
+  monitor:
+    image: log-generator
+    container_name: compose-monitor
+    command: python log_monitor.py
+    restart: always
+    volumes:
+      - /home/ec2-user/cloud_project:/app
