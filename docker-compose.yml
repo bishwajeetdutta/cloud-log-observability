@@ -1,0 +1,7 @@
+services:
+  generator:
+    image: log-generator
+    container_name: compose-generator
+    restart: always
+    volumes:
+      - /home/ec2-user/cloud_project:/app
