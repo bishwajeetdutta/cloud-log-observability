@@ -6,6 +6,7 @@ import os
 # Setup logging to write to a file
 logging.basicConfig(
     #filename='server.log', # did this for docker phase to see the logs on screen and do not have to get inside the fake-server to see the logs
+    filename='server.log', # <---Add this back
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
