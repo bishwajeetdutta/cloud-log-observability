@@ -3,15 +3,16 @@ import os
 import boto3
 from datetime import datetime
 
-LOG_FILE = "server.log"
+LOG_FILE = "/app/server.log"
 BUCKET_NAME = "cloud-log-analyzer-errors"
+ERROR_DIR = "/app/errors"
 
 print("Starting Log Monitor with AWS S3 Uplink...")
 
-# Initialize the S3 client (It automatically uses the IAM role we attached!)
+os.makedirs(ERROR_DIR, exist_ok=True)
+
 s3 = boto3.client('s3', region_name='ap-south-1')
 
-# Create a blank file if it doesn't exist yet to prevent crashes
 if not os.path.exists(LOG_FILE):
     open(LOG_FILE, 'w').close()
 
@@ -24,19 +25,20 @@ with open(LOG_FILE, "r") as f:
             continue
 
         if "ERROR" in line:
-            print(f"ALERT! ⚠️ ERROR detected -> {line.strip()}")
-            
-            # 1. Create a unique filename based on the current timestamp
+            print(f"ALERT! ERROR detected -> {line.strip()}")
+
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             error_filename = f"error_log_{timestamp}.txt"
-            
-            # 2. Save the error to a temporary file inside the container
-            with open(error_filename, "w") as error_file:
+            error_filepath = f"{ERROR_DIR}/{error_filename}"
+
+            with open(error_filepath, "w") as error_file:
                 error_file.write(line)
-            
-            # 3. Upload that file to your S3 Bucket
+
             try:
-                s3.upload_file(error_filename, BUCKET_NAME, error_filename)
-                print(f"✅ Successfully uploaded {error_filename} to S3!")
+                s3.upload_file(error_filepath, BUCKET_NAME, error_filename)
+                print(f"Uploaded {error_filename} to S3!")
+                os.remove(error_filepath)
+                print(f"Deleted local file {error_filename}")
             except Exception as e:
-                print(f"❌ Failed to upload to S3: {e}")
+                print(f"Failed to upload to S3: {e}")
+
