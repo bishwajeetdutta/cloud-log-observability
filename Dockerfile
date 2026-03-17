@@ -1,9 +1,11 @@
 
 # 1. Use a lightweight Python Linux (Alpine is tiny)
-FROM python:3.9-slim
+FROM python:3.11-slim
 
 # 2. Create a folder inside the container
 WORKDIR /app
+
+RUN pip install boto3
 
 # 3. Copy files from Host (EC2) to Container (/app)
 COPY log_generator.py  .

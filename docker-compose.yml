@@ -1,15 +1,19 @@
+
 services:
+
   generator:
     image: log-generator
     container_name: compose-generator
     restart: always
     volumes:
-      - /home/ec2-user/cloud_project:/app
+      - /home/ec2-user/cloud-log-observability:/app
 
   monitor:
     image: log-generator
     container_name: compose-monitor
-    command: python log_monitor.py
+    command: python -u log_monitor.py
     restart: always
+    environment:
+      - PYTHONUNBUFFERED=1
     volumes:
-      - /home/ec2-user/cloud_project:/app
+      - /home/ec2-user/cloud-log-observability:/app
