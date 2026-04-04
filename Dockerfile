@@ -5,7 +5,7 @@ FROM python:3.11-slim
 # 2. Create a folder inside the container
 WORKDIR /app
 
-RUN pip install boto3
+RUN pip install boto3 psycopg2-binary
 
 # 3. Copy files from Host (EC2) to Container (/app)
 COPY log_generator.py  .
