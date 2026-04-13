@@ -2,3 +2,5 @@ server.log
 server.log.*
 nohup.out
 *.log
+errors/
+error_log_*.txt

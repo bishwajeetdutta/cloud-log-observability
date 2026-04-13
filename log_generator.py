@@ -5,7 +5,8 @@ import os
 
 # Setup logging to write to a file
 logging.basicConfig(
-    filename='/home/ec2-user/cloud_project/server.log',
+    #filename='server.log', # did this for docker phase to see the logs on screen and do not have to get inside the fake-server to see the logs
+    filename='/app/server.log', # <---Add this back
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s'
 )

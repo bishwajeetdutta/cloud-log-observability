@@ -1,0 +1,42 @@
+services:
+  generator:
+    image: log-generator
+    container_name: compose-generator
+    restart: always
+    volumes:
+      - /home/ec2-user/cloud-log-observability:/app
+
+  monitor:
+    image: log-generator
+    container_name: compose-monitor
+    command: python -u log_monitor.py
+    restart: always
+    environment:
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - /home/ec2-user/cloud-log-observability:/app
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:15
+    container_name: compose-postgres
+    restart: always
+    environment:
+      POSTGRES_DB: logsdb
+      POSTGRES_USER: loguser
+      POSTGRES_PASSWORD: logpassword
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: compose-grafana
+    restart: always
+    ports:
+      - "3000:3000"
+    depends_on:
+      - postgres
+
+volumes:
+  postgres_data:

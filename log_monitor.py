@@ -1,24 +1,102 @@
 import time
+import os
+import boto3
+import psycopg2
+from datetime import datetime
 
-# UPDATE THIS LINE TO THE ABSOLUTE PATH
-LOG_FILE = "/home/ec2-user/cloud_project/server.log"
+LOG_FILE = "/app/server.log"
+BUCKET_NAME = "cloud-log-analyzer-errors"
+ERROR_DIR = "/app/errors"
 
-def follow(file):
-    file.seek(0, 2)  # Move to the end of the file
+print("Starting Log Monitor with AWS S3 + PostgreSQL Uplink...")
+
+os.makedirs(ERROR_DIR, exist_ok=True)
+
+# Initialize S3 client
+s3 = boto3.client('s3', region_name='ap-south-1')
+
+# Initialize PostgreSQL connection
+def connect_db():
     while True:
-        line = file.readline()
-        if not line:
-            time.sleep(0.5)
-            continue
-        yield line
+        try:
+            conn = psycopg2.connect(
+                host="postgres",
+                database="logsdb",
+                user="loguser",
+                password="logpassword"
+            )
+            print("Connected to PostgreSQL!")
+            return conn
+        except Exception as e:
+            print(f"PostgreSQL not ready yet, retrying in 5 seconds... {e}")
+            time.sleep(5)
 
-try:
-    with open(LOG_FILE, "r") as f:
-        loglines = follow(f)
-        for line in loglines:
-            if "ERROR" in line:
-                print("ALERT! ⚠️ ERROR detected ->", line.strip())
-            else:
-                print("OK:", line.strip())
-except FileNotFoundError:
-    print(f"Error: Could not find log file at {LOG_FILE}. Is the generator running?")
+# Create table if it doesn't exist
+def setup_db(conn):
+    cursor = conn.cursor()
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS error_logs (
+            id SERIAL PRIMARY KEY,
+            timestamp TIMESTAMP,
+            error_type VARCHAR(100),
+            message TEXT
+        )
+    """)
+    conn.commit()
+    cursor.close()
+    print("Database table ready!")
+
+# Insert error into PostgreSQL
+def insert_error(conn, timestamp, error_type, message):
+    try:
+        cursor = conn.cursor()
+        sql = """INSERT INTO error_logs 
+                 (timestamp, error_type, message) 
+                 VALUES (%s, %s, %s)"""
+        data = (timestamp, error_type, message)
+        cursor.execute(sql, data)
+        conn.commit()
+        cursor.close()
+        print(f"Saved to PostgreSQL!")
+    except Exception as e:
+        print(f"Failed to save to PostgreSQL: {e}")
+
+# Connect to DB
+conn = connect_db()
+setup_db(conn)
+
+# Create log file if it doesn't exist
+if not os.path.exists(LOG_FILE):
+    open(LOG_FILE, 'w').close()
+
+with open(LOG_FILE, "r") as f:
+    f.seek(0, os.SEEK_END)
+    while True:
+        line = f.readline()
+        if not line:
+            time.sleep(1)
+            continue
+
+        if "ERROR" in line:
+            print(f"ALERT! ERROR detected -> {line.strip()}")
+
+            timestamp = datetime.now()
+            error_type = "DB Connection Failed"
+            error_filename = f"error_log_{timestamp.strftime('%Y%m%d_%H%M%S')}.txt"
+            error_filepath = f"{ERROR_DIR}/{error_filename}"
+
+            # Save error file locally
+            with open(error_filepath, "w") as error_file:
+                error_file.write(line)
+
+            # 1. Upload to S3
+            try:
+                s3.upload_file(error_filepath, BUCKET_NAME, error_filename)
+                print(f"Uploaded {error_filename} to S3!")
+                os.remove(error_filepath)
+                print(f"Deleted local file {error_filename}")
+            except Exception as e:
+                print(f"Failed to upload to S3: {e}")
+
+            # 2. Save to PostgreSQL
+            insert_error(conn, timestamp, error_type, line.strip())
