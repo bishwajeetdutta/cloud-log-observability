@@ -1,2 +1,2 @@
-@reboot /usr/bin/python3 /home/ec2-user/cloud_project/log_generator.py >> /home/ec2-user/cloud_project/cron.log 2>&1
-0 0 * * * /home/ec2-user/cloud_project/log_rotate.sh >> /home/ec2-user/cloud_project/cron_rotate.log 2>&1
+# @reboot /usr/bin/python3 /home/ec2-user/cloud-log-observability/log_generator.py >> /home/ec2-user/cloud-log-observability/cron_rotate.log 2>&1
+0 0 * * * bash /home/ec2-user/cloud-log-observability/log_rotate.sh >> /home/ec2-user/cloud-log-observability/cron_rotate.log 2>&1
