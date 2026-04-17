@@ -4,5 +4,4 @@ nohup.out
 *.log
 errors/
 error_log_*.txt
-
 archives/
