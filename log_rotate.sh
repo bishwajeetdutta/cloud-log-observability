@@ -1,9 +1,12 @@
 #!/bin/bash
 
 LOG_DIR="/home/ec2-user/cloud-log-observability"
+ARCHIVE_DIR="$LOG_DIR/archives"
 LOG_FILE="$LOG_DIR/server.log"
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 BACKUP_FILE="$LOG_DIR/server.log.$TIMESTAMP"
+
+sudo mkdir -p "$ARCHIVE_DIR"
 
 if [ -f "$LOG_FILE" ]; then
     # 1. Rotate the current log
@@ -19,9 +22,9 @@ if [ -f "$LOG_FILE" ]; then
 
     # 4. Cleanup (Retention Policy: Delete logs older than 7 days)
     # Uses [0-9]* to only match timestamped files, not other .log files
-    sudo find "$LOG_DIR" -name "server.log.[0-9]*" -mtime +7 -delete
+    sudo find "$ARCHIVE_DIR" -name "server.log.[0-9]*" -mtime +7 -delete
     
-    echo "✅ Log rotated: $BACKUP_FILE created. Old logs (>7 days) deleted."
+    echo "Log rotated and moved to archives."
 else
-    echo "⚠️  No log file found."
+    echo "No log file found."
 fi
