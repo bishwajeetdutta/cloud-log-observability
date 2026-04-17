@@ -15,7 +15,7 @@ if [ -f "$LOG_FILE" ]; then
     # 3. Restart the Generator (Crucial for Inode release)
     #pkill -f log_generator.py
     #nohup python3 /home/ec2-user/cloud_project/log_generator.py > /dev/null 2>&1 &
-    sudo docker restart compose-generator
+    sudo docker restart compose-generator compose-monitor
 
     # 4. Cleanup (Retention Policy: Delete logs older than 7 days)
     # Uses [0-9]* to only match timestamped files, not other .log files
