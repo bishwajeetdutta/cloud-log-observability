@@ -4,7 +4,7 @@ LOG_DIR="/home/ec2-user/cloud-log-observability"
 ARCHIVE_DIR="$LOG_DIR/archives"
 LOG_FILE="$LOG_DIR/server.log"
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
-BACKUP_FILE="$LOG_DIR/server.log.$TIMESTAMP"
+BACKUP_FILE="$ARCHIVE_DIR/server.log.$TIMESTAMP"
 
 sudo mkdir -p "$ARCHIVE_DIR"
 
