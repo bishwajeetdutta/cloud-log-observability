@@ -48,19 +48,3 @@ graph TD
 * The entire environment is containerized using Docker Compose for seamless networking and self-healing (`restart: always` policies).
 * **Grafana** connects directly to the PostgreSQL container via the private Docker network. Time-series queries group errors by minute to populate a live visualization dashboard.
 
-## Quick Start (Local Deployment)
-
-```bash
-# 1. Clone the repository
-git clone [https://github.com/bishwajeetdutta/cloud-log-observability.git](https://github.com/bishwajeetdutta/cloud-log-observability.git)
-cd cloud-log-observability
-
-# 2. Build and start the infrastructure
-docker-compose up -d --build
-
-# 3. Verify containers are running
-docker ps
-
-# 4. Access the Grafana Dashboard
-# Open browser to: http://YOUR-EC2-IP:3000
-```
