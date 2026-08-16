@@ -9,22 +9,19 @@ BACKUP_FILE="$ARCHIVE_DIR/server.log.$TIMESTAMP"
 sudo mkdir -p "$ARCHIVE_DIR"
 
 if [ -f "$LOG_FILE" ]; then
-    # 1. Rotate the current log
+    # move the current log to archives folde
     sudo mv "$LOG_FILE" "$BACKUP_FILE"
-    
-    # 2. Create a fresh empty log file
+
+    # create a fresh empty log file for new logs to go into
     sudo touch "$LOG_FILE"
-    
-    # 3. Restart the Generator (Crucial for Inode release)
-    #pkill -f log_generator.py
-    #nohup python3 /home/ec2-user/cloud_project/log_generator.py > /dev/null 2>&1 &
+
+    # restart the containers so they start writing to the new log file so that old files close and logs go into the right place
     sudo docker restart compose-generator compose-monitor
 
-    # 4. Cleanup (Retention Policy: Delete logs older than 7 days)
-    # Uses [0-9]* to only match timestamped files, not other .log files
+    # delete archived logs more than 7 days old
     sudo find "$ARCHIVE_DIR" -name "server.log.[0-9]*" -mtime +7 -delete
-    
-    echo "Log rotated and moved to archives."
+
+    echo "Log rotated successfully. Old archives cleaned up."
 else
-    echo "No log file found."
+    echo "No log file found at $LOG_FILE"
 fi
