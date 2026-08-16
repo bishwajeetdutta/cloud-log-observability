@@ -47,6 +47,7 @@ sudo chmod +x /usr/local/bin/docker-compose
 ```bash
 git clone https://github.com/bishwajeetdutta/cloud-log-observability.git
 cd cloud-log-observability
+docker build -t log-generator .
 docker compose up -d --build
 ```
 
