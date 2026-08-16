@@ -31,11 +31,11 @@ Moved everything into Docker containers. One line — `restart: always` — repl
 
 Added AWS S3 as a backup layer. Every time the monitor detects an ERROR, it uploads a timestamped file to S3 automatically. Used IAM roles for authentication.
 
-**PostgreSQL**
+**4. PostgreSQL**
 
 S3 is great for backup but it was not good for querying the data. So added PostgreSQL so every error gets stored as a structured row with timestamp, error type, and message. Used parameterized queries to prevent SQL injection. Now I can query things like "how many errors happened in the last hour?" etc.
 
-**Grafana**
+**5. Grafana**
 
 Connected Grafana to PostgreSQL to visualize the error data as a live time-series graph. You can see the heartbeat of the application in real time.
 
@@ -64,7 +64,7 @@ graph TD
 ## Project Structure
 
 ```text
-cloud-log-observability/
+cloud-log-observability
 ├── log_generator.py      # Simulates a server — writes INFO and ERROR logs
 ├── log_monitor.py        # Watches logs, uploads errors to S3 + PostgreSQL
 ├── log_rotate.sh         # Rotates server.log daily, deletes archives > 7 days
