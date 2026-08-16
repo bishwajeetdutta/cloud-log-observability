@@ -3,10 +3,9 @@ import time
 import random
 import os
 
-# Setup logging to write to a file
+# writing logs to a file inside the container
 logging.basicConfig(
-    #filename='server.log', # did this for docker phase to see the logs on screen and do not have to get inside the fake-server to see the logs
-    filename='/app/server.log', # <---Add this back
+    filename='/app/server.log',
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
@@ -15,11 +14,11 @@ pid = os.getpid()
 print(f"Server Started! Running with PID: {pid}")
 
 while True:
-    # Simulate traffic
+    # 80% chance of INFO, 20% chance of ERROR
     if random.randint(1, 10) <= 8:
         logging.info(f"Health Check OK. Process {pid} running.")
     else:
         logging.error("DB Connection Failed! Timeout.")
 
-    # Sleep for 3 seconds so we don't fill the disk too fast
+    # wait 3 seconds so we dont fill disk too fast
     time.sleep(3)
