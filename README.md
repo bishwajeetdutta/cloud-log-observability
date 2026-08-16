@@ -1,5 +1,4 @@
 # Cloud-Native Log Observability & Analytics
-
 [![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
 [![AWS S3](https://img.shields.io/badge/AWS_S3-569A31?style=for-the-badge&logo=amazon-s3&logoColor=white)](https://aws.amazon.com/s3/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
@@ -25,15 +24,19 @@ I built this step by step, each one solving a problem I hit in the previous.
 Started by writing a Python script that generates logs continuously. Then I realized — what if the process dies? What if the server reboots? So I wrote `auto_restart.sh` to monitor and revive the process, and used cron to make it survive reboots. Also wrote `log_rotate.sh` to rotate logs daily and delete archives older than 7 days so the disk doesn't fill up.
 
 **2. Docker**
+
 Moved everything into Docker containers. One line — `restart: always` — replaced all my restart and reboot scripts. Used Docker volumes so logs persist even if containers die. Wrote a `docker-compose.yml` to manage both containers together.
 
 **3. AWS S3**
+
 Added AWS S3 as a backup layer. Every time the monitor detects an ERROR, it uploads a timestamped file to S3 automatically. Used IAM roles for authentication.
 
 **PostgreSQL**
+
 S3 is great for backup but it was not good for querying the data. So added PostgreSQL so every error gets stored as a structured row with timestamp, error type, and message. Used parameterized queries to prevent SQL injection. Now I can query things like "how many errors happened in the last hour?" etc.
 
 **Grafana**
+
 Connected Grafana to PostgreSQL to visualize the error data as a live time-series graph. You can see the heartbeat of the application in real time.
 
 ## Architecture
