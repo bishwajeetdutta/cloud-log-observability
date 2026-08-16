@@ -1,4 +1,5 @@
 # Cloud-Native Log Observability & Analytics
+
 [![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
 [![AWS S3](https://img.shields.io/badge/AWS_S3-569A31?style=for-the-badge&logo=amazon-s3&logoColor=white)](https://aws.amazon.com/s3/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
@@ -21,6 +22,7 @@ The system runs 24/7 on AWS EC2 and automatically:
 I built this step by step, each one solving a problem I hit in the previous.
 
 **1. Scripting and Automation**
+
 Started by writing a Python script that generates logs continuously. Then I realized — what if the process dies? What if the server reboots? So I wrote `auto_restart.sh` to monitor and revive the process, and used cron to make it survive reboots. Also wrote `log_rotate.sh` to rotate logs daily and delete archives older than 7 days so the disk doesn't fill up.
 
 **2. Docker**
@@ -61,15 +63,3 @@ graph TD
 | Monitoring | Grafana |
 | Version Control | Git, GitHub |
 
-## Project Structure
-
-```text
-cloud-log-observability
-├── log_generator.py      # Simulates a server — writes INFO and ERROR logs
-├── log_monitor.py        # Watches logs, uploads errors to S3 + PostgreSQL
-├── log_rotate.sh         # Rotates server.log daily, deletes archives > 7 days
-├── auto_restart.sh       # Restarts generator if it dies (no longer used)
-├── Dockerfile            # Builds the container image
-├── docker-compose.yml    # Runs all containers together
-└── crontab_backup.txt    # Backup of the cron configuration used in Phase 1
-```
