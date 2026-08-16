@@ -1,50 +1,72 @@
 # Cloud-Native Log Observability & Analytics
 
-![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
-![AWS S3](https://img.shields.io/badge/AWS_S3-569A31?style=for-the-badge&logo=amazon-s3&logoColor=white)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)
-![Grafana](https://img.shields.io/badge/Grafana-F46800?style=for-the-badge&logo=grafana&logoColor=white)
-![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
+[![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
+[![AWS S3](https://img.shields.io/badge/AWS_S3-569A31?style=for-the-badge&logo=amazon-s3&logoColor=white)](https://aws.amazon.com/s3/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![Grafana](https://img.shields.io/badge/Grafana-F46800?style=for-the-badge&logo=grafana&logoColor=white)](https://grafana.com/)
+[![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 
 ## Overview
-A production-grade, cloud-native log monitoring system built on AWS EC2 that automatically generates, detects, stores, and visualizes server logs in real-time. This project mimics enterprise-level data architecture, transitioning raw system text into actionable visual dashboards.
 
-## System Architecture
+This is a project I built to understand how real production systems handle logs. I built a working log monitoring system on AWS - starting with basic scripts and evolving it into a fully containerized cloud-native stack.
+
+The system runs 24/7 on AWS EC2 and automatically:
+- Generates fake server logs 
+- Detects ERROR events in real-time
+- Backs up error logs to AWS S3
+- Stores structured error data in PostgreSQL
+- Visualizes everything on a live Grafana dashboard
+
+## How it's built
+
+I built this step by step, each one solving a problem I hit in the previous.
+
+**1. Scripting and Automation**
+Started by writing a Python script that generates logs continuously. Then I realized — what if the process dies? What if the server reboots? So I wrote `auto_restart.sh` to monitor and revive the process, and used cron to make it survive reboots. Also wrote `log_rotate.sh` to rotate logs daily and delete archives older than 7 days so the disk doesn't fill up.
+
+**2. Docker**
+Moved everything into Docker containers. One line — `restart: always` — replaced all my restart and reboot scripts. Used Docker volumes so logs persist even if containers die. Wrote a `docker-compose.yml` to manage both containers together.
+
+**3. AWS S3**
+Added AWS S3 as a backup layer. Every time the monitor detects an ERROR, it uploads a timestamped file to S3 automatically. Used IAM roles for authentication.
+
+**PostgreSQL**
+S3 is great for backup but it was not good for querying the data. So added PostgreSQL so every error gets stored as a structured row with timestamp, error type, and message. Used parameterized queries to prevent SQL injection. Now I can query things like "how many errors happened in the last hour?" etc.
+
+**Grafana**
+Connected Grafana to PostgreSQL to visualize the error data as a live time-series graph. You can see the heartbeat of the application in real time.
+
+## Architecture
 
 ```mermaid
 graph TD
-    A[Log Generator Container] -->|Writes| B(server.log)
-    C[Log Monitor Container] -->|Tails & Parses| B
-    C -->|Cold Storage Backup| D[AWS S3 Bucket]
-    C -->|Hot Storage Insert| E[(PostgreSQL Container)]
+    A[Log Generator Container] -->|Writes every 3 sec| B(server.log)
+    C[Log Monitor Container] -->|Tails & parses| B
+    C -->|Uploads error file| D[AWS S3 Bucket]
+    C -->|Inserts structured row| E[(PostgreSQL Container)]
     F[Grafana Dashboard] -->|Queries| E
 ```
 
 ## Tech Stack
 
-| Technology | Purpose |
-|------------|---------|
-| **Python** | Log generation + monitoring |
-| **Bash & Cron** | Linux automation scripts |
-| **Docker Compose** | Containerization + orchestration |
-| **AWS EC2** | Cloud compute server |
-| **AWS S3** | Error log backup (cold storage) |
-| **AWS IAM** | Secure role-based access |
-| **PostgreSQL** | Structured log storage (hot storage) |
-| **Grafana** | Real-time visualization dashboard |
+| Category | Tools |
+|----------|-------|
+| Languages | Python, Bash |
+| Containers | Docker, Docker Compose |
+| Cloud | AWS EC2, AWS S3, AWS IAM |
+| Database | PostgreSQL |
+| Monitoring | Grafana |
+| Version Control | Git, GitHub |
 
-## How It Works (The Pipeline)
+## Project Structure
 
-### 1. Linux Automation & Generation
-* `log_generator.py` simulates a live production server by generating traffic and intermittent errors.
-* Automated via Bash (`auto_restart.sh`) and Linux Cron to survive server reboots and manage log rotation to prevent storage overflow.
-
-### 2. Dual-Storage Routing
-* A Python watchdog tails the live server logs to detect critical ERROR states.
-* **Cold Storage (Disaster Recovery):** Boto3 authenticates automatically via IAM roles (zero hardcoded credentials) to bundle and upload raw error files to **AWS S3**.
-* **Hot Storage (Analytics):** Parses log strings and securely inserts them into **PostgreSQL** using parameterized queries to prevent SQL injection.
-
-### 3. Container Orchestration & Visualization
-* The entire environment is containerized using Docker Compose for seamless networking and self-healing (`restart: always` policies).
-* **Grafana** connects directly to the PostgreSQL container via the private Docker network. Time-series queries group errors by minute to populate a live visualization dashboard.
-
+```text
+cloud-log-observability/
+├── log_generator.py      # Simulates a server — writes INFO and ERROR logs
+├── log_monitor.py        # Watches logs, uploads errors to S3 + PostgreSQL
+├── log_rotate.sh         # Rotates server.log daily, deletes archives > 7 days
+├── auto_restart.sh       # Restarts generator if it dies (no longer used)
+├── Dockerfile            # Builds the container image
+├── docker-compose.yml    # Runs all containers together
+└── crontab_backup.txt    # Backup of the cron configuration used in Phase 1
+```
